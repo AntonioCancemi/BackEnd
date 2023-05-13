@@ -19,19 +19,26 @@ public class MainProject {
 	private static File file = new File(path);
 	private static Scanner sc = new Scanner(System.in);
 	private static String[] catalogArr;
+	private static boolean conditionToRun = true;
+	private static boolean statusAction = true;
 
 	public static void main(String[] args) {
 		try {
 			start();
+
 			availableComands();
+			while (conditionToRun) {
 
-			boolean condition = true;
-			while (condition) {
-				String inputComand = sc.nextLine().toUpperCase();
+				String input = sc.nextLine();
+				if (!input.isEmpty()) {
+					int comandIn = Integer.parseInt(input);
+					// SELECT COMAND AND RUN ACTION
+					comandSwitch(comandIn);
+
+				} else {
+					System.out.println("inserisci il numero dell'azione che vuoi eseguire");
+				}
 			}
-
-			searchParam("author");
-
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -51,13 +58,49 @@ public class MainProject {
 		return input;
 	}
 
+	public static void comandSwitch(int comandIn) throws IOException {
+		switch (comandIn) {
+		case 0:
+			System.out.println("PROGRAMMA ARRESTATO");
+			conditionToRun = false;
+			break;
+		case 1:
+
+			addItem();
+			System.err.println("END PROCESS");
+			break;
+		case 2:
+			removeItem();
+			System.err.println("END PROCESS");
+			break;
+		case 3:
+			searchParam("ISBN");
+			System.err.println("END PROCESS");
+			break;
+		case 4:
+			searchParam("AUTHOR");
+			System.err.println("END PROCESS");
+			break;
+		case 5:
+			searchParam("YEAR");
+			System.err.println("END PROCESS");
+			break;
+
+		default:
+			System.err.println("errore");
+			break;
+		}
+		if (conditionToRun) {
+			availableComands();
+		}
+
+	}
+
 	// search yearAndAuthor
 	public static void searchParam(String val) {
 		val = val.toUpperCase();
 		System.out.println("\n****SRART searchParam*****");
-		System.err.println("per interromper digita 'back'");
-		System.out.println(
-				val.equals("AUTHOR") ? "inserisci l'autore che ti interessa: " : "inserisci l'anno che ti interessa: ");
+		System.out.println("inserisci il parametro di ricerca: ");
 		boolean condition = true;
 		String input = null;
 		result.clear();
@@ -67,9 +110,10 @@ public class MainProject {
 				condition = false;
 			} else if (input.isEmpty()) {
 				System.err.println("Input is Wrong or Empty try again or go 'back':");
+
 			} else {
 				switchSearch(input, val);
-
+				condition = false;
 			}
 		}
 		System.out.println("****END searchParam*****");
@@ -98,6 +142,10 @@ public class MainProject {
 				}
 			}
 			break;
+		case "ISBN":
+			result.add(catalogGeneric.get(input).toString());
+			found = true;
+			break;
 		default:
 			break;
 		}
@@ -105,8 +153,8 @@ public class MainProject {
 			System.err.println(input + " Not Found");
 		} else {
 			printResults(input);
-		}
 
+		}
 	}
 
 	public static void printResults(String input) {
@@ -133,9 +181,8 @@ public class MainProject {
 				"----------------remove----------------\nInserisci il codice ISBN del libro o magazine che vuoi cancellare: ");
 		String codiceISBN = sc.nextLine();
 
-		readCatalog();
 		if (catalogGeneric.containsKey(codiceISBN)) {
-			System.out.println("Stringa eliminata dal file/oggetto eliminato:\n" + catalogGeneric.get(codiceISBN));
+			System.out.println("oggetto eliminato:\n" + catalogGeneric.get(codiceISBN));
 			catalogGeneric.remove(codiceISBN);
 			updateCatalogoFile("");
 			readCatalog();
@@ -196,7 +243,6 @@ public class MainProject {
 			if (str != "") {
 
 				String[] data = str.split("@");
-				List<String> dat = new ArrayList<String>();
 				switch (data.length) {
 				case 6:
 					makeBookAddIt(data);
@@ -289,19 +335,19 @@ public class MainProject {
 		map.put(m6.getCodiceISBN(), m6);
 		map.put(m7.getCodiceISBN(), m7);
 		map.put(m8.getCodiceISBN(), m8);
+		String[] comand = { "CLOSE PROGRAM", "ADD", "REMOVE", "SEARCH ISBN", "SEARCH AUTHOR", "SEARCH YEAR" };
+		int i = 0;
+		for (String string : comand) {
+			i++;
+			comandsAvailable.add(string);
+		}
 		return map;
 	}
 	// OTHER
 
 //OTHER
 	public static void availableComands() {
-		String[] comand = { "CLOSE PROGRAM", "ADD", "REMOVE", "SEARCH ISBN", "SEARCH AUTHOR", "SEARCH YEAR",
-				"SHOW_COMAND" };
-		int i = 0;
-		for (String string : comand) {
-			i++;
-			comandsAvailable.add(string);
-		}
+
 		System.out.println("\nAvailable Comands-->");
 		comandsAvailable.forEach(e -> {
 
@@ -312,8 +358,22 @@ public class MainProject {
 	}
 
 	public static void printCatalog() {
+		List<String[]> catalogToPrint = new ArrayList<String[]>();
 		System.out.println("************* Catalogo Completo (size: " + catalogGeneric.size() + ") *************");
-		catalogGeneric.forEach((K, V) -> System.out
-				.println((V.toString().split("@").length == 5 ? "magazine) " : "libro   ) ") + V.toString()));
+		// catalogGeneric.forEach((K, V) -> System.out
+		// .println((V.toString().split("@").length == 5 ? "magazine) " : "libro ) ") +
+		// V.toString()));
+		for (String string : catalogArr) {
+			String[] str = string.split("@");
+			String start = str.length == 5 ? "magazine) " : "libro ) ";
+			if (str.length == 5) {
+				System.out.println(start + "[titolo= " + str[0] + ", Year= " + str[2] + ", pages= " + str[3]
+						+ ", IBSN= " + str[4] + " ]");
+			} else {
+				System.out.println(start + "[titolo= " + str[0] + ", Author= " + str[1] + ", genre= " + str[2]
+						+ ", Year= " + str[3] + ", pages= " + str[4] + ", IBSN= " + str[5] + " ]");
+			}
+
+		}
 	}
 }
